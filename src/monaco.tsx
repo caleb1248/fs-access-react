@@ -1,7 +1,6 @@
-import { Editor, Monaco } from "@monaco-editor/react";
-import type { editor } from "monaco-editor";
-type onMount = (editor: editor.IStandaloneCodeEditor, monaco: Monaco) => void;
-type MonacoEditorProps = { onMount: onMount };
+import { Editor, OnMount } from "@monaco-editor/react";
+
+type MonacoEditorProps = { onMount: OnMount };
 
 export function MonacoEditor(props: MonacoEditorProps) {
   return (

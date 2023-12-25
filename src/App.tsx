@@ -1,10 +1,20 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import "./App.css";
 import { Horizontal } from "./lib/splitpane/splitpane";
 import { MonacoEditor } from "./monaco";
+import type { editor } from "monaco-editor";
 
 function App() {
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<editor.IStandaloneCodeEditor>();
+
+  useEffect(() => {
+    function onResize() {
+      console.log(editorRef.current?.layout);
+      editorRef.current && editorRef.current.layout();
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   return (
     <>
       <Horizontal

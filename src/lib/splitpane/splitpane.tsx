@@ -20,6 +20,7 @@ export function Horizontal(props: HorizontalProps) {
     onResize = noop,
     children,
   } = props;
+  const currentWidth = useRef(0);
   const [hovering, setHovering] = useState(false);
   const dragging = useRef(false);
   const theContainer = useRef<HTMLDivElement>(null);
@@ -34,6 +35,30 @@ export function Horizontal(props: HorizontalProps) {
     } else {
       setColumns([width / 2, width / 2]);
     }
+  }, []);
+
+  useEffect(() => {
+    currentWidth.current = theContainer.current?.getBoundingClientRect().width!;
+    function handleResize() {
+      const newWidth = theContainer.current?.getBoundingClientRect().width!;
+      if (newWidth > currentWidth.current) {
+        setColumns([columns[0], newWidth - columns[0]]);
+      } else if (newWidth < currentWidth.current) {
+        // Shrink the right
+        const newColumns = [columns[0], newWidth - columns[0]];
+        // If the right is too small, shrink the left
+        if (columns[1] < minRight) {
+          columns[1] = minRight;
+          columns[0];
+        }
+        // If the left isn't too small, then update the template columns. Otherwise, overflow
+        if (columns[0] < minLeft) {
+        }
+      }
+    }
+    const observer = new ResizeObserver(handleResize);
+    observer.observe(theContainer.current!);
+    return () => observer.disconnect();
   }, []);
 
   const handleMouseMove: React.MouseEventHandler = (
@@ -73,7 +98,7 @@ export function Horizontal(props: HorizontalProps) {
       onMouseDown={() => (dragging.current = hovering)}
       onMouseUp={() => (dragging.current = false)}
       style={{
-        overflow: "hidden",
+        overflow: "auto",
         cursor: hovering ? "ew-resize" : "default",
         display: "grid",
         gridTemplateColumns: columns.map((c) => c + "px").join(" "),
