@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, type ReactElement } from "react";
 
 function noop() {}
 
@@ -8,7 +8,7 @@ interface HorizontalProps {
   initialLeft?: number;
   initialRight?: number;
   onResize?: () => void;
-  children: React.ReactElement[];
+  children: [ReactElement, ReactElement];
 }
 
 export function Horizontal(props: HorizontalProps) {
@@ -25,6 +25,7 @@ export function Horizontal(props: HorizontalProps) {
   const dragging = useRef(false);
   const theContainer = useRef<HTMLDivElement>(null);
   const [columns, setColumns] = useState([0, 0]);
+  const [overflow, setOverflow] = useState(false);
 
   useEffect(() => {
     const { width } = theContainer.current?.getBoundingClientRect()!;
@@ -41,18 +42,29 @@ export function Horizontal(props: HorizontalProps) {
     currentWidth.current = theContainer.current?.getBoundingClientRect().width!;
     function handleResize() {
       const newWidth = theContainer.current?.getBoundingClientRect().width!;
+
+      if (newWidth == currentWidth.current) return;
       if (newWidth > currentWidth.current) {
         setColumns([columns[0], newWidth - columns[0]]);
+        currentWidth.current = newWidth;
+        onResize();
       } else if (newWidth < currentWidth.current) {
         // Shrink the right
         const newColumns = [columns[0], newWidth - columns[0]];
         // If the right is too small, shrink the left
-        if (columns[1] < minRight) {
-          columns[1] = minRight;
-          columns[0];
+        if (newColumns[1] < minRight) {
+          newColumns[1] = minRight;
+          newColumns[0] = newWidth - minRight;
+          console.log(newColumns[0]);
         }
-        // If the left isn't too small, then update the template columns. Otherwise, overflow
-        if (columns[0] < minLeft) {
+        // If the left isn't too small, then update the template columns. Otherwise, do nothing
+        if (newColumns[0] >= minLeft) {
+          currentWidth.current = newWidth;
+          setColumns(newColumns);
+          onResize();
+          overflow && setOverflow(false);
+        } else {
+          !overflow && setOverflow(true);
         }
       }
     }
@@ -98,11 +110,11 @@ export function Horizontal(props: HorizontalProps) {
       onMouseDown={() => (dragging.current = hovering)}
       onMouseUp={() => (dragging.current = false)}
       style={{
-        overflow: "auto",
+        overflow: overflow ? "auto" : "hidden",
         cursor: hovering ? "ew-resize" : "default",
         display: "grid",
         gridTemplateColumns: columns.map((c) => c + "px").join(" "),
-        width: "100%",
+        minWidth: "100%",
         height: "100%",
       }}
     >
