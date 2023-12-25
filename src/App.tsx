@@ -3,6 +3,7 @@ import "./App.css";
 import { Horizontal } from "./lib/splitpane/splitpane";
 import { MonacoEditor } from "./monaco";
 import type { editor } from "monaco-editor";
+import addFormatters from "./lib/prettier";
 
 function App() {
   const editorRef = useRef<editor.IStandaloneCodeEditor>();
@@ -23,6 +24,7 @@ function App() {
             <MonacoEditor
               onMount={(editor, monaco) => {
                 editorRef.current = editor;
+                addFormatters(monaco);
               }}
             />
           </div>
